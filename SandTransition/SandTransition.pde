@@ -1,39 +1,28 @@
 
 /*
 	Sand transition animation as seen in older games such as DOOM.
-
-	Playing around with pixel reading and setting. Felt this was a good starting point.
-	At the moment the animation uses an ArrayList of Particles. The final sketch
-	should run off an integer array with speeds for each pixel column.
 */
 
 // User variables.
 float maxspeed = 20.0;
 float damping = 100;
+float noise = 2.0;
 float delay = 1.5;
-
-// Particle class.
-class Particle {
-	int x;
-	int y;
-	int c;
-
-	Particle(int x, int y, int c) {
-		this.x = x;
-		this.y = y;
-		this.c = c;
-	}
-}
+boolean debug = true;
 
 // Runtime variables.
 float time = 0.0;
 float speed = 0.0;
+int zero = color(0, 0, 0, 0);
+PImage frame;
 
-ArrayList<Particle> particles = new ArrayList<Particle>();
+boolean[] flags; // Stores which columns have completed.
+int flagcount = 0;
+boolean transition = true;
 
 void setup() {
-	frameRate(30);
-	size(128, 128);
+	frameRate(20);
+	size(128, 64);
 	background(0, 0, 0);
 
 	// Draw anything here that should then be read and converted into particles.
@@ -41,38 +30,68 @@ void setup() {
 	textSize(32);
 	text("TEST", width / 2, height / 2 + 12);
 
-	loadPixels(); // Load and then read pixels.
+	frame = get();
 
-	for (int i = 0; i < pixels.length; i++) {
-		int x = i % width;
-		int y = i / width;
-		int c = pixels[i];
-
-		particles.add(new Particle(x, y, c));
-	}
-
-	updatePixels();
+	flags = new boolean[frame.width]; // Set the correct size of the array.
 }
 
 void draw() {
 	time += (1 / frameRate); // Add to the time with seconds.
 
-	background(0, 0, 0); // Clear the background.
+	background(75, 75, 75); // Clear the background.
+
+	text("DONE", width / 2, height / 2 + 12);
 
 	// Interpolate towards the maximum speed once the delay is passed.
 	if(time > delay) speed = speed + (maxspeed - speed) / damping;
 
-	loadPixels(); // Load pixels for direct manipulation.
+	if (transition) {
+		int[] rowlast = new int[width]; // Stores the last sampled row.
 
-	for (int i = 0; i < particles.size(); i++) {
-		Particle p = particles.get(i);
+		for (int i = 0; i < frame.height; i++) {
+			// Check if the column has completed and skip it if needed.
+			if(flags[i]) break;
 
-		pixels[((int) p.y * height + (int) p.x)] = p.c;
+			// Random displacement per column.
+			float displace = random(noise / 100, noise);
 
-		p.y = p.y + (int) random(speed / 100, speed);
+			for (int j = 0; j < frame.width; j++) {
+				// If we are in the last row we should check if the current pixel is empty.
+				if(i == frame.height - 1) {
+					if(frame.pixels[i + (j * frame.width)] == zero) {
+						flags[i] = true;
 
-		if(p.x < 0 || p.x > width || p.y < 0 || p.y > height) particles.remove(i);
+						flagcount++;
+
+						if(flagcount == frame.width) transition = false;
+
+						break;
+					}
+				}
+
+				// Make sure that out of range pixels are transparent.
+				if(j - 1 < 0) {
+					rowlast[j] = zero;
+				}
+
+				// Shift the row
+				int p = rowlast[j];
+
+				// Store the current pixel in the row.
+				rowlast[j] = frame.pixels[i + j * frame.width];
+
+				frame.pixels[min(frame.width * frame.height - 1, max(0, (i - 1)) + (j + (int) (displace * speed)) * frame.width)] = p;
+			}
+		}
+
+		set(0, 0, frame);
+
+		if(debug) {
+			stroke(color(255, 0, 0, 100));
+
+			for(int i = 0; i < frame.height; i++) {
+				if(flags[i] == true) line(i, 0, i, frame.height);
+			}
+		}
 	}
-
-	updatePixels();	// Set new pixel array.
 }
