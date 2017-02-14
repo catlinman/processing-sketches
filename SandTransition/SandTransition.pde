@@ -1,6 +1,8 @@
 
 /*
 	Sand transition animation as seen in older games such as DOOM.
+
+	FIXME: Currently broken. I need to get this working.
 */
 
 // User variables.
@@ -50,7 +52,7 @@ void draw() {
 
 		for (int i = 0; i < frame.height; i++) {
 			// Check if the column has completed and skip it if needed.
-			if(flags[i]) break;
+			if(flags[i]) continue;
 
 			// Random displacement per column.
 			float displace = random(noise / 100, noise);
@@ -58,14 +60,14 @@ void draw() {
 			for (int j = 0; j < frame.width; j++) {
 				// If we are in the last row we should check if the current pixel is empty.
 				if(i == frame.height - 1) {
-					if(frame.pixels[i + (j * frame.width)] == zero) {
+					if(frame.pixels[i] == zero) {
 						flags[i] = true;
 
 						flagcount++;
 
 						if(flagcount == frame.width) transition = false;
 
-						break;
+						continue;
 					}
 				}
 
@@ -78,9 +80,11 @@ void draw() {
 				int p = rowlast[j];
 
 				// Store the current pixel in the row.
-				rowlast[j] = frame.pixels[i + j * frame.width];
+				rowlast[j] = frame.pixels[j + (i * frame.width)];
 
-				frame.pixels[min(frame.width * frame.height - 1, max(0, (i - 1)) + (j + (int) (displace * speed)) * frame.width)] = p;
+				frame.pixels[
+					j + (i * frame.width) + (int) (i * frame.width)
+				] = p;
 			}
 		}
 
