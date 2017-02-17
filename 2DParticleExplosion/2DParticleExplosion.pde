@@ -44,7 +44,7 @@ class Particle {
 }
 
 void setup() {
-	frameRate(60);
+	frameRate(30);
 	size(256, 256);
 	background(0, 0, 0);
 	noStroke();
@@ -67,7 +67,7 @@ void setup() {
 }
 
 void draw() {
-	background(0, 0, 0); // Clears the frame. Remove this line for extra spice.
+    background(0, 0, 0); // Clears the frame. Remove this line for extra spice.
 
 	Iterator<Particle> itr = Particle.system.iterator(); // Get an iterator for the System.
 
@@ -96,13 +96,13 @@ void draw() {
 		p.r = min(abs(p.vx * p.vy) * particleRadius, particleRadius);
 
 		// Calculate the color from velocity. Color clips values. Multiplication determines phases.
-		fill(color(abs(p.vx * p.vy) * 1000, abs(p.vx * p.vy) * 350, abs(p.vx * p.vy) * 150));
+		fill(color(abs(p.vx * p.vy) * 800, abs(p.vx * p.vy) * 350, abs(p.vx * p.vy) * 150));
 
 		// Draw the particle.
 		ellipse(p.x, p.y, p.r / 2, p.r / 2);
 	}
 
 	// Debug count of particles.
-	// fill(color(255, 255, 255));
-	// text(Particle.system.size(), 4, 16);
+	fill(color(255, 255, 255));
+	text(Particle.system.size(), 4, 16);
 }
