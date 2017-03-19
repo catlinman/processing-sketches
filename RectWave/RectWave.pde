@@ -6,13 +6,13 @@
 	pixels. Didn't start this off with Pixels so I didn't bother changing anything!
 */
 
-// User variables.
+/* User variables. */
 int cellsize = 8;
 int cellcount = 16;
 float wavelength = 1;
 float wavespeed = 2;
 
-// Runtime variables.
+/* Runtime variables. */
 float time = 0;
 
 void setup() {

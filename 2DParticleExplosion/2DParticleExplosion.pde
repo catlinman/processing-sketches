@@ -3,7 +3,7 @@
 	Radial destributed particle explosion.
 
 	Playing around with classes and objects to see how fast I can code some sort of
-	particle system and play around with it. Nothing in 3D yet but I'll convert this
+	particle collection and play around with it. Nothing in 3D yet but I'll convert this
 	the first chance I get.
 
 	Particles are killed if they leave the screen or become too small. Next iteration
@@ -13,7 +13,10 @@
 	and just continuously drawing.
 */
 
-// User variables.
+// Imports for compatability.
+import java.util.Iterator;
+
+/* User variables. */
 int particleCount = 256;
 float particleRadius = 16;
 float particleMaxVel = 4;
@@ -21,10 +24,12 @@ float particleRanVel = 0.25;
 float particleNoise = 0.1;
 float particleDamping = 0.03;
 
+/* Runtime variables. */
+ArrayList<Particle> particleCollection;
+ArrayList<Particle> removeCollection;
+
 // Main particle class.
 class Particle {
-	static ArrayList<Particle> system = new ArrayList<Particle>();
-
 	float x;
 	float y;
 	float vx;
@@ -39,7 +44,7 @@ class Particle {
 		this.r = r;
 
 		// Add the instantiated particle to the static array.
-		Particle.system.add(this);
+		particleCollection.add(this);
 	}
 }
 
@@ -49,17 +54,20 @@ void setup() {
 	background(0, 0, 0);
 	noStroke();
 
+    particleCollection = new ArrayList<Particle>();
+    removeCollection = new ArrayList<Particle>();
+
 	// Create particles up to the max count.
 	for(int i = 0; i < particleCount; i++) {
 		// Create random normalized vectors.
-		vx = random(-1, 1);
-		vy = random(-1, 1);
-		l = sqrt((vx * vx) + (vy * vy));
-		nx = vx / l;
-		ny = vy / l;
+		float vx = random(-1, 1);
+		float vy = random(-1, 1);
+		float l = sqrt((vx * vx) + (vy * vy));
+		float nx = vx / l;
+		float ny = vy / l;
 
 		// Speed of the particles on spawn. Can be multiplied with random for more distribution.
-		s = particleMaxVel + random(-particleRanVel, particleRanVel);
+		float s = particleMaxVel + random(-particleRanVel, particleRanVel);
 
 		// Create the new particle with the correct parameters.
 		new Particle(width / 2, height / 2, nx * s, ny * s, particleRadius);
@@ -69,14 +77,14 @@ void setup() {
 void draw() {
     background(0, 0, 0); // Clears the frame. Remove this line for extra spice.
 
-	Iterator<Particle> itr = Particle.system.iterator(); // Get an iterator for the System.
+	Iterator<Particle> itr = particleCollection.iterator(); // Get an iterator for the collection.
 
 	// Start handling particles.
 	while (itr.hasNext()) {
 		Particle p = itr.next(); // Fetch the current particle.
 
 		if(p.r < 0.1 || p.x + p.r < 0 || p.x - p.r > width || p.y + p.r < 0 || p.y - p.r > height) {
-			Particle.system.remove(p); // This is not the right way...
+			removeCollection.add(p);
 			continue;
 		}
 
@@ -102,7 +110,17 @@ void draw() {
 		ellipse(p.x, p.y, p.r / 2, p.r / 2);
 	}
 
+    // Remove all flagged particles at the end of the frame.
+    Iterator<Particle> delitr = removeCollection.iterator();
+    while (delitr.hasNext()) {
+        Particle p = delitr.next(); // Fetch the current deletion particle.
+
+        particleCollection.remove(p);
+    }
+
+    removeCollection.clear();
+
 	// Debug count of particles.
 	fill(color(255, 255, 255));
-	text(Particle.system.size(), 4, 16);
+	text(particleCollection.size(), 4, 16);
 }

@@ -7,19 +7,19 @@
     is showing!
 */
 
-// User variables.
+/* User variables. */
 float rotation = radians(0.5);
 float radius = 100;
+
+/* Runtime variables. */
+float rot = 0;
+boolean hide = false;
 
 void setup() {
     size(256, 256);
     frameRate(60);
     background(0, 0, 0);
 }
-
-// Current rotation for the given frame.
-float rot = 0;
-boolean hide = false;
 
 void draw() {
     background(0, 0, 0); // Clear the frame.

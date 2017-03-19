@@ -7,4 +7,5 @@ ideas whenever I get a chance but I can not guarantee regular activity.
 
 ## License ##
 
-This repository is released under the MIT license. For more information please refer to [LICENSE](https://github.com/catlinman/sketches/blob/master/LICENSE)
+This repository is released under the MIT license. For more information please
+refer to [LICENSE](https://github.com/catlinman/sketches/blob/master/LICENSE)
