@@ -1,6 +1,7 @@
 
 /*
-	Sand transition animation as seen in older games such as DOOM.
+	Doom transition animation as seen when changing menus and loading levels in
+    the original games.
 
     Was struggling with this in the beginning because of lacks of time but finally
     got around to completing this and it looks rather spot on.
@@ -9,7 +10,7 @@
 // User variables.
 float maxspeed = 20.0;
 float damping = 100;
-float delay = 1.0;
+float delay = 2.0;
 boolean debug = false;
 
 // Runtime variables.
