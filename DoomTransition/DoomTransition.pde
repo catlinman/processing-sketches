@@ -10,7 +10,7 @@
 // User variables.
 float maxspeed = 20.0;
 float damping = 100;
-float delay = 2.0;
+float delay = 1.0;
 boolean debug = false;
 
 // Runtime variables.
