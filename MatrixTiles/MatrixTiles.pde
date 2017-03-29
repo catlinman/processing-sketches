@@ -110,7 +110,7 @@ class MatrixGrid {
 }
 
 void setup() {
-    size(512, 512);
+    size(256, 256);
     frameRate(15);
     background(0, 0, 0);
     textAlign(CENTER);

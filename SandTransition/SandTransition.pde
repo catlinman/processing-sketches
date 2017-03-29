@@ -2,100 +2,125 @@
 /*
 	Sand transition animation as seen in older games such as DOOM.
 
-	FIXME: Currently broken. I need to get this working.
+    Was struggling with this in the beginning because of lacks of time but finally
+    got around to completing this and it looks rather spot on.
 */
 
 // User variables.
 float maxspeed = 20.0;
 float damping = 100;
-float noise = 2.0;
-float delay = 1.5;
-boolean debug = true;
+float delay = 1.0;
+boolean debug = false;
 
 // Runtime variables.
 float time = 0.0;
 float speed = 0.0;
-int zero = color(0, 0, 0, 0);
-PImage frame;
 
-boolean[] flags; // Stores which columns have completed.
-int flagcount = 0;
-boolean transition = true;
+// Image buffers.
+PImage frame;
+PImage inImage;
+PImage outImage;
+
+// Transition relevant variables.
+int[] columnShifts; // Counts the shift for each column.
+boolean columnDone = false; // Value is true if the transition has completed.
+
+// Iterates over array integers and sums them up.
+static final int sum(int[] arr) {
+    int sum = 0;
+    for (final int f : arr) sum += f;
+    return sum;
+}
 
 void setup() {
-	frameRate(20);
-	size(128, 64);
-	background(0, 0, 0);
+	frameRate(60);
+	size(256, 256);
 
-	// Draw anything here that should then be read and converted into particles.
-	textAlign(CENTER);
-	textSize(32);
-	text("TEST", width / 2, height / 2 + 12);
+    // Load the images.
+    inImage = loadImage("doom1.jpg");
+    outImage = loadImage("doom2.jpg");
 
+    // Draw the base image we will star the transition with.
+	image(inImage, 0, 0, width, height);
+
+    // Set an extra simple background in case we want to debug.
+    if(debug) background(0, 0, 0);
+
+    // Get the current image buffer and construct an array with column shifts.
 	frame = get();
 
-	flags = new boolean[frame.width]; // Set the correct size of the array.
+	columnShifts = new int[frame.width]; // Set the correct size of the array.
 }
 
 void draw() {
 	time += (1 / frameRate); // Add to the time with seconds.
 
-	background(75, 75, 75); // Clear the background.
+    // Draw the base image we will star the transition with.
+	image(outImage, 0, 0, width, height);
 
-	text("DONE", width / 2, height / 2 + 12);
+    // Set an extra simple background in case we want to debug.
+    if(debug) background(255, 255, 255);
 
-	// Interpolate towards the maximum speed once the delay is passed.
-	if(time > delay) speed = speed + (maxspeed - speed) / damping;
+    if(!columnDone) {
+        // Interpolate towards the maximum speed once the delay is passed.
+        if(time > delay) speed = speed + (maxspeed - speed) / damping;
 
-	if (transition) {
-		int[] rowlast = new int[width]; // Stores the last sampled row.
+        frame.loadPixels(); // Load the pixels first before using them.
 
-		for (int i = 0; i < frame.height; i++) {
-			// Check if the column has completed and skip it if needed.
-			if(flags[i]) continue;
+        for (int i = 0; i < frame.width; i++) {
+            // If the shift has reached the bottom we can skip everything.
+            if(columnShifts[i] == frame.height) continue;
 
-			// Random displacement per column.
-			float displace = random(noise / 100, noise);
+            // The current random shift to apply on the given frame for the column.
+            int shift = (int) random(0, speed);
 
-			for (int j = 0; j < frame.width; j++) {
-				// If we are in the last row we should check if the current pixel is empty.
-				if(i == frame.height - 1) {
-					if(frame.pixels[i] == zero) {
-						flags[i] = true;
+            // We have to shift columns multiple times to match the noise.
+            for(int j = 0; j < shift; j++) {
+                // This value is the cached last pixel used to shift the column.
+                int cachePixel = 0;
 
-						flagcount++;
+                // Store the last shift in a variable to avoid constant array access.
+                int lastShift = columnShifts[i];
 
-						if(flagcount == frame.width) transition = false;
+                // Iterate over all pixels in the column and shift them down.
+                for(int k = 0; k < frame.height; k++) {
+                    // Optimization pass. Ignore already shifted pixels.
+                    if(k < lastShift + 1) continue;
 
-						continue;
-					}
-				}
+                    int currentPixel = frame.pixels[
+                        (k * frame.width) + i
+                    ];
 
-				// Make sure that out of range pixels are transparent.
-				if(j - 1 < 0) {
-					rowlast[j] = zero;
-				}
+                    frame.pixels[
+                        (k * frame.width) + i
+                    ] = cachePixel;
 
-				// Shift the row
-				int p = rowlast[j];
+                    cachePixel = currentPixel;
+                }
+            }
 
-				// Store the current pixel in the row.
-				rowlast[j] = frame.pixels[j + (i * frame.width)];
+            // Add the new shift to the column.
+            columnShifts[i] = min(columnShifts[i] + shift, frame.height);
+        }
 
-				frame.pixels[
-					j + (i * frame.width) + (int) (i * frame.width)
-				] = p;
-			}
-		}
+        frame.updatePixels(); // Update the pixels of our frame buffer.
 
-		set(0, 0, frame);
+        // Set our transitioned base frame.
+        image(frame, 0, 0);
 
-		if(debug) {
-			stroke(color(255, 0, 0, 100));
+        // Check if all shifted column have reached the bottom of the screen.
+        if(sum(columnShifts) == frame.width * frame.height) columnDone = true;
 
-			for(int i = 0; i < frame.height; i++) {
-				if(flags[i] == true) line(i, 0, i, frame.height);
-			}
-		}
-	}
+        // Draw helpers for completed columns for easier debugging and optimization.
+    	if(debug) {
+    		stroke(color(255, 0, 0, 100));
+
+    		for(int i = 0; i < frame.width; i++) {
+    			if(columnShifts[i] == frame.height) line(i, 0, i, frame.height);
+    		}
+    	}
+
+    } else {
+        noLoop();
+    }
 }
