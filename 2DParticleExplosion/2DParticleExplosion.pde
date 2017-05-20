@@ -11,10 +11,6 @@
 	the size calculation each frame is not normalized meaning the resulting animation
 	is not distributed as it should. This is clearly visible when not clearing the frame
 	and just continuously drawing.
-
-    TODO: This could use a rework since it works fine in Processing.js but not
-    in the Java version. Throws ArrayOutofBoundsException. Also, particle logic
-    & drawing should be handled by the particle and not the main loop.
 */
 
 // Imports for compatability.
@@ -55,6 +51,38 @@ class Particle {
 		// Add the instantiated particle to the static array.
 		particleCollection.add(this);
 	}
+
+    // Main logic handling method for particles.
+    void update() {
+        if(this.r < 0.1 || this.x + this.r < 0 || this.x - this.r > width || this.y + this.r < 0 || this.y - this.r > height) {
+            //removeCollection.add(this);
+            return;
+        }
+
+        // Add some random movement to the velocities. Should possible be lerped.
+        this.vx += random(-particleNoise, particleNoise);
+        this.vy += random(-particleNoise, particleNoise);
+
+        // Slowly damp particle velocities.
+        this.vx = lerp(this.vx, 0, particleDamping);
+        this.vy = lerp(this.vy, 0, particleDamping);
+
+        // Add velocity values to positional values.
+        this.x += this.vx;
+        this.y += this.vy;
+
+        // Calculate size from velocity. Is not normalized. Clips at preset radius.
+        this.r = min(abs(this.vx * this.vy) * particleRadius, particleRadius);
+    }
+
+    // Main drawing method for particles.
+    void draw() {
+        // Calculate the color from velocity. Color clips values. Multiplication determines phases.
+		fill(color(abs(this.vx * this.vy) * 800, abs(this.vx * this.vy) * 350, abs(this.vx * this.vy) * 150));
+
+		// Draw the particle.
+		ellipse(this.x, this.y, this.r / 2, this.r / 2);
+    }
 }
 
 void setup() {
@@ -93,31 +121,8 @@ void draw() {
 	while (itr.hasNext()) {
 		Particle p = itr.next(); // Fetch the current particle.
 
-		if(p.r < 0.1 || p.x + p.r < 0 || p.x - p.r > width || p.y + p.r < 0 || p.y - p.r > height) {
-			removeCollection.add(p);
-			continue;
-		}
-
-		// Add some random movement to the velocities. Should possible be lerped.
-		p.vx += random(-particleNoise, particleNoise);
-		p.vy += random(-particleNoise, particleNoise);
-
-		// Slowly damp particle velocities.
-		p.vx = lerp(p.vx, 0, particleDamping);
-		p.vy = lerp(p.vy, 0, particleDamping);
-
-		// Add velocity values to positional values.
-		p.x += p.vx;
-		p.y += p.vy;
-
-		// Calculate size from velocity. Is not normalized. Clips at preset radius.
-		p.r = min(abs(p.vx * p.vy) * particleRadius, particleRadius);
-
-		// Calculate the color from velocity. Color clips values. Multiplication determines phases.
-		fill(color(abs(p.vx * p.vy) * 800, abs(p.vx * p.vy) * 350, abs(p.vx * p.vy) * 150));
-
-		// Draw the particle.
-		ellipse(p.x, p.y, p.r / 2, p.r / 2);
+        p.update(); // Update particle logic.
+        p.draw(); // Draw particles.
 	}
 
     // Remove all flagged particles at the end of the frame.
