@@ -11,6 +11,10 @@
 	the size calculation each frame is not normalized meaning the resulting animation
 	is not distributed as it should. This is clearly visible when not clearing the frame
 	and just continuously drawing.
+
+    TODO: This could use a rework since it works fine in Processing.js but not
+    in the Java version. Throws ArrayOutofBoundsException. Also, particle logic
+    & drawing should be handled by the particle and not the main loop.
 */
 
 // Imports for compatability.
@@ -30,10 +34,15 @@ ArrayList<Particle> removeCollection;
 
 // Main particle class.
 class Particle {
+    // Positional values.
 	float x;
 	float y;
+
+    // Local velocity values.
 	float vx;
 	float vy;
+
+    // Size radius of the particle in pixels.
 	float r;
 
 	Particle(float x, float y, float vx, float vy, float r) {
@@ -54,6 +63,7 @@ void setup() {
 	background(0, 0, 0);
 	noStroke();
 
+    // Instantiate the array lists.
     particleCollection = new ArrayList<Particle>();
     removeCollection = new ArrayList<Particle>();
 
@@ -115,9 +125,11 @@ void draw() {
     while (delitr.hasNext()) {
         Particle p = delitr.next(); // Fetch the current deletion particle.
 
+        // Remove the current particle from the main collection.
         particleCollection.remove(p);
     }
 
+    // Wipe the removal array list.
     removeCollection.clear();
 
 	// Debug count of particles.
